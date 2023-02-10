@@ -1,7 +1,7 @@
-# Computers
+# express-auth-template
 
-This App will allow users to view information about the different 
-models of computers with therir features and information 
+A template for starting projects with `express` as an API. Includes
+authentication and common middlewares.
 
 ## Installation
 
