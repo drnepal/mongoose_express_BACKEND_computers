@@ -5,6 +5,14 @@ models of computers with therir features and information
 
 ## Installation
 
+# Computers
+
+| Verb   | URI Pattern            | Controller#Action |
+|--------|------------------------|-------------------|
+| POST   | `/sign-up`             | `users#signup`    |
+| POST   | `/sign-in`             | `users#signin`    |
+| PATCH  | `/change-password/` | `users#changepw`  |
+| DELETE | `/sign-out/`        | `users#signout`   |
 1. [Download](../../archive/master.zip) this template.
 1. Move the .zip file to your `sei/projects/` directory and Unzip it (creating a
    folder) -- **NOTE:** if the folder was already unzipped, use the `mv` command
@@ -18,6 +26,19 @@ models of computers with therir features and information
 2. Once everything is working, make an initial commit.
 
 ## Structure
+
+# Users 
+
+#### Routes Table
+
+| Verb   | URI Pattern            | Controller#Action |
+|--------|------------------------|-------------------|
+| POST   | `/computers`             | `computers#index `    |
+| GET  | `/computers/:id`             | `computers#show`    |
+ POST  | `/computers`             | `computers#screate`
+| PATCH  | `/computers:id/` | `computers#update`  |
+| DELETE | `/computers/:id`        | `computers#delete`   |
+
 
 Dependencies are stored in [`package.json`](package.json).
 
