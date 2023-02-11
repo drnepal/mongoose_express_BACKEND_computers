@@ -3,8 +3,8 @@ const express = require('express')
 // Passport docs: http://www.passportjs.org/docs/
 const passport = require('passport')
 
-// pull in Mongoose model for computers
-const computerSchema = require('../models/computer')
+// pull in Mongoose model for homes
+const Home = require('../models/home')
 
 // this is a collection of methods that help us detect situations when we need
 // to throw a custom error
@@ -17,7 +17,7 @@ const handle404 = customErrors.handle404
 const requireOwnership = customErrors.requireOwnership
 
 // this is middleware that will remove blank fields from `req.body`, e.g.
-// { computer: { title: '', text: 'foo' } } -> { computer: { text: 'foo' } }
+// { home: { title: '', text: 'foo' } } -> { home: { text: 'foo' } }
 const removeBlanks = require('../../lib/remove_blank_fields')
 // passing this as a second argument to `router.<verb>` will make it
 // so that a token MUST be passed for that route to be available
@@ -28,43 +28,45 @@ const requireToken = passport.authenticate('bearer', { session: false })
 const router = express.Router()
 
 // INDEX
-// GET /computers
-router.get('/computers', requireToken, (req, res, next) => {
-	Computer.find()
-		.then((computers) => {
-			// `computers` will be an array of Mongoose documents
+// GET /homes
+router.get('/homes', requireToken, (req, res, next) => {
+	Home.find()
+	// .populate('owner')
+		.then((homes) => {
+			// `homes` will be an array of Mongoose documents
 			// we want to convert each one to a POJO, so we use `.map` to
 			// apply `.toObject` to each one
-			return computers.map((computer) => computer.toObject())
+			return homes.map((home) => home.toObject())
 		})
-		// respond with status 200 and JSON of the computers
-		.then((computers) => res.status(200).json({ computers: computers }))
+		// respond with status 200 and JSON of the homes
+		.then((homes) => res.status(200).json({ homes: homes }))
 		// if an error occurs, pass it to the handler
 		.catch(next)
 })
 
 // SHOW
-// GET /computers/5a7db6c74d55bc51bdf39793
-router.get('/computers/:id', requireToken, (req, res, next) => {
+// GET /homes/5a7db6c74d55bc51bdf39793
+router.get('/homes/:id', requireToken, (req, res, next) => {
 	// req.params.id will be set based on the `:id` in the route
-	Computer.findById(req.params.id)
+	Home.findById(req.params.id)
+	.populate('owner')
 		.then(handle404)
-		// if `findById` is succesful, respond with 200 and "computer" JSON
-		.then((computer) => res.status(200).json({ computer: computer.toObject() }))
+		// if `findById` is succesful, respond with 200 and "home" JSON
+		.then((home) => res.status(200).json({ home: home.toObject() }))
 		// if an error occurs, pass it to the handler
 		.catch(next)
 })
 
 // CREATE
-// POST /computers
-router.post('/computers', requireToken, (req, res, next) => {
-	// set owner of new computer to be current user
-	req.body.computer.owner = req.user.id
+// POST /homes
+router.post('/homes', requireToken, (req, res, next) => {
+	// set owner of new home to be current user
+	req.body.home.owner = req.user.id
 
-	Computer.create(req.body.computer)
-		// respond to succesful `create` with status 201 and JSON of new "computer"
-		.then((computer) => {
-			res.status(201).json({ computer: computer.toObject() })
+	Home.create(req.body.home)
+		// respond to succesful `create` with status 201 and JSON of new "home"
+		.then((home) => {
+			res.status(201).json({ home: home.toObject() })
 		})
 		// if an error occurs, pass it off to our error handler
 		// the error handler needs the error message and the `res` object so that it
@@ -73,21 +75,21 @@ router.post('/computers', requireToken, (req, res, next) => {
 })
 
 // UPDATE
-// PATCH /computers/5a7db6c74d55bc51bdf39793
-router.patch('/computers/:id', requireToken, removeBlanks, (req, res, next) => {
+// PATCH /homes/5a7db6c74d55bc51bdf39793
+router.patch('/homes/:id', requireToken, removeBlanks, (req, res, next) => {
 	// if the client attempts to change the `owner` property by including a new
 	// owner, prevent that by deleting that key/value pair
-	delete req.body.computer.owner
+	delete req.body.home.owner
 
-	Computer.findById(req.params.id)
+	Home.findById(req.params.id)
 		.then(handle404)
-		.then((computer) => {
+		.then((home) => {
 			// pass the `req` object and the Mongoose record to `requireOwnership`
 			// it will throw an error if the current user isn't the owner
-			requireOwnership(req, computer)
+			requireOwnership(req, home)
 
 			// pass the result of Mongoose's `.update` to the next `.then`
-			return computer.updateOne(req.body.computer)
+			return home.updateOne(req.body.home)
 		})
 		// if that succeeded, return 204 and no JSON
 		.then(() => res.sendStatus(204))
@@ -96,15 +98,15 @@ router.patch('/computers/:id', requireToken, removeBlanks, (req, res, next) => {
 })
 
 // DESTROY
-// DELETE /computers/5a7db6c74d55bc51bdf39793
-router.delete('/computers/:id', requireToken, (req, res, next) => {
-	Computer.findById(req.params.id)
+// DELETE /homes/5a7db6c74d55bc51bdf39793
+router.delete('/homes/:id', requireToken, (req, res, next) => {
+	Home.findById(req.params.id)
 		.then(handle404)
-		.then((computer) => {
-			// throw an error if current user doesn't own `computer`
-			requireOwnership(req, computer)
-			// delete the computer ONLY IF the above didn't throw
-			computer.deleteOne()
+		.then((home) => {
+			// throw an error if current user doesn't own `home`
+			requireOwnership(req, home)
+			// delete the home ONLY IF the above didn't throw
+			home.deleteOne()
 		})
 		// send back 204 and no content if the deletion succeeded
 		.then(() => res.sendStatus(204))
